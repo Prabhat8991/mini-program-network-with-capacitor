@@ -1,25 +1,48 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState, useEffect } from 'react';
+import { Network } from '@capacitor/network';
 
-function App() {
+const NetworkStatusComponent = () => {
+  const [networkInfo, setNetworkInfo] = useState({
+    connected: false,
+    connectionType: null,
+    connectionStrength: null
+  });
+
+  useEffect(() => {
+    const networkStatusChangeListener = Network.addListener('networkStatusChange', status => {
+      console.log('Network status changed', status);
+      setNetworkInfo({
+        connected: status.connected,
+        connectionType: status.connectionType,
+        connectionStrength: status.connectionStrength
+      });
+    });
+
+    return () => {
+      networkStatusChangeListener.remove();
+    };
+  }, []);
+
+  const logCurrentNetworkStatus = async () => {
+    const status = await Network.getStatus();
+    console.log('Network status:', status);
+    setNetworkInfo({
+      connected: status.connected,
+      connectionType: status.connectionType,
+    });
+  };
+
+  useEffect(() => {
+    logCurrentNetworkStatus();
+  }, []);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <h1>Network Status</h1>
+      <p>Connected: {networkInfo.connected ? 'Yes' : 'No'}</p>
+      <p>Type: {networkInfo.connectionType}</p>
     </div>
   );
-}
+};
 
-export default App;
+export default NetworkStatusComponent;
